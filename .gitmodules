@@ -1,0 +1,3 @@
+[submodule "lib/PicoLED"]
+	path = lib/PicoLED
+	url = https://github.com/ForsakenNGS/PicoLED
