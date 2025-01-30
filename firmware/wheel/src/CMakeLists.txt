@@ -17,17 +17,22 @@ add_executable(${NAME}
         uRosEntities.cpp
         
         ConfigEntity.cpp
-        
+        NVSJson.cpp
         )
 
 # Pull in our pico_stdlib which pulls in commonly used features
 target_link_libraries(${NAME} 
 	 pico_stdlib
+	 pico_unique_id
+	 hardware_watchdog
      FreeRTOS-Kernel-Heap4 
      freertos_config
      hardware_pwm
      micro_ros
      pico_rand
+     onboard_nvs
+     tiny_json
+     json_maker
 	)
 	
 target_include_directories(${NAME} PRIVATE

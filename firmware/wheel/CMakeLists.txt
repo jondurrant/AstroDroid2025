@@ -23,6 +23,15 @@ include(FreeRTOS_Kernel_import.cmake)
 SET(MICRO_ROS_PATH "${CMAKE_CURRENT_LIST_DIR}/../../lib/micro_ros_raspberrypi_pico_sdk/" CACHE STRING "Common Lib")
 include(micro_ros.cmake)
 
+set(NVS_PATH "${CMAKE_CURRENT_LIST_DIR}/../../lib/RPIPicoOnboardNVS/")
+    message("Using local NVS_PATH '${NVS_PATH}')")
+include(picoOnboardNVS.cmake)
+
+set(TINY_JSON_DIR "${CMAKE_CURRENT_LIST_DIR}/../../lib/tiny-json")
+include(tiny-json.cmake)
+
+set(JSON_MAKER_DIR "${CMAKE_CURRENT_LIST_DIR}/../../lib/json-maker")
+include(json-maker.cmake)
 
 #Add main source directory
 add_subdirectory(src)

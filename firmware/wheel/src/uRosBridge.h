@@ -41,6 +41,12 @@ extern"C"{
 #define PUB_Q_LEN 			10
 #define UROS_MAX_PUB_MSGS	5
 
+#define DEFAULT_ROS2_NODE_NAME "pico_node"
+#define DEFAULT_ROS2_NAMESPACE ""
+
+
+//#define PICO_COUNT
+
 class uRosBridge : public Agent {
 public:
 
@@ -83,6 +89,9 @@ public:
 	 * @return NULL if not connected
 	 */
 	rclc_support_t *getSupport();
+
+	void setNodeName(char * name);
+	void setNamespace(char * name);
 
 private:
 
@@ -134,6 +143,9 @@ private:
 	uRosEntities * pURosEntities = NULL;
 
 	QueueHandle_t xPubQ = NULL;
+
+	 char * pNodeName = NULL;
+	 char *pNamespace = NULL;
 
 
 protected:

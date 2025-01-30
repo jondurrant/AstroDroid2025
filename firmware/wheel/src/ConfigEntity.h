@@ -12,7 +12,20 @@
 
 extern "C"{
 #include <std_msgs/msg/string.h>
+#include <std_msgs/msg/header.h>
 }
+
+
+#define ROS2_NODE "ROS2NODE"
+#define TOPIC_PREFIX "TOPIC_PREFIX"
+#define FACTORY_RESET "FACTORY_RESET"
+#define REBOOT "REBOOT"
+#define CONFIG_TOPIC "/config"
+#define CONFIG_SET_TOPIC "/set_config"
+#define CONFIG_BUFFER_SIZE 1024
+#define CONFIG_MAX_KEYS 12
+
+
 
 class ConfigEntity : public  uRosEntities {
 public:
@@ -53,6 +66,10 @@ public:
 	virtual void addToExecutor(rclc_executor_t *executor);
 
 
+	virtual void setNeededDefaults();
+	virtual void factoryReset();
+	virtual void reboot();
+
 protected:
 
 	/***
@@ -70,6 +87,13 @@ private:
 	rcl_subscription_t 			xSubConfig;
 	uRosSubContext_t   		xSubConfigContext;
 	std_msgs__msg__String xConfigMsg;
+	//std_msgs__msg__Header xConfigMsg;
+
+
+	char xBuffer[CONFIG_BUFFER_SIZE];
+
+	char * pConfigTopic = NULL;
+	char * pSetConfigTopic = NULL;
 
 
 };

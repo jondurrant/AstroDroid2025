@@ -23,5 +23,6 @@ target_include_directories(onboard_nvs PUBLIC
 # Add the standard library to the build
 target_link_libraries(onboard_nvs PUBLIC 
 	pico_stdlib 
+	hardware_flash
 )
 

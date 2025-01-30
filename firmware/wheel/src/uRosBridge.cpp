@@ -52,11 +52,27 @@ uRosBridge::uRosBridge() {
 		printf("ERROR uRosBridge create Queue failed\n");
 	}
 
+	pNodeName = (char *)pvPortMalloc( strlen(DEFAULT_ROS2_NODE_NAME) + 1 );
+	if (pNodeName != NULL){
+		strcpy(pNodeName, DEFAULT_ROS2_NODE_NAME);
+	}
+
+	pNamespace = (char *)pvPortMalloc( strlen(DEFAULT_ROS2_NAMESPACE) + 1 );
+	if (pNamespace != NULL){
+		strcpy(pNamespace, DEFAULT_ROS2_NAMESPACE);
+	}
+
 }
 
 uRosBridge::~uRosBridge() {
 	if( xPubQ != NULL ){
 		vQueueDelete(xPubQ);
+	}
+	if (pNodeName != NULL){
+		vPortFree(pNodeName);
+	}
+	if (pNamespace != NULL){
+		vPortFree(pNamespace);
 	}
 }
 
@@ -104,6 +120,19 @@ void uRosBridge::run(){
 									NULL);
 							if (RCL_RET_OK != pubRet) {
 								printf("Queue Pub failed %d \n", pubRet);
+								switch(pubRet){
+								case RCL_RET_INVALID_ARGUMENT:
+									printf("RCL_RET_INVALID_ARGUMENT \n");
+									break;
+								case RCL_RET_PUBLISHER_INVALID:
+									printf("RCL_RET_PUBLISHER_INVALID\n");
+									break;
+								case RCL_RET_ERROR:
+									printf("RCL_RET_ERROR\n");
+									break;
+								default:
+									printf("Unknown error\n");
+								}
 								state = AGENT_DISCONNECTED;
 
 								cmd.entities->pubComplete(
@@ -223,18 +252,23 @@ void uRosBridge::createEntities(){
 
 	rclc_support_init(&xSupport, 0, NULL, &xAllocator);
 
-	rclc_node_init_default(&xNode, "pico_node", "", &xSupport);
+	rclc_node_init_default(&xNode,  pNodeName,  pNamespace, &xSupport);
+
+
+#ifdef PICO_COUNT
 	rclc_publisher_init_default(
 		&xPublisher,
 		&xNode,
 		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
 		"pico_count");
+#endif
 
 	rclc_timer_init_default(
 		&xTimer,
 		&xSupport,
 		RCL_MS_TO_NS(1000),
 		uRosBridge::timerCallback);
+
 
 
 	uint handles = 1;
@@ -250,6 +284,7 @@ void uRosBridge::createEntities(){
 	printf("Created %d entities\n", count);
 
 	rclc_executor_init(&xExecutor, &xSupport.context, handles, &xAllocator);
+
 	rclc_executor_add_timer(&xExecutor, &xTimer);
 
 	if (pURosEntities != NULL){
@@ -295,6 +330,7 @@ void uRosBridge::destroyEntities(){
 	(void) rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
 	rcl_publisher_fini(&xPublisher, &xNode);
+
 	rcl_timer_fini(&xTimer);
 
 	if (pURosEntities != NULL){
@@ -314,7 +350,9 @@ void uRosBridge::destroyEntities(){
  * @param last_call_time
  */
 void uRosBridge::timerCallback(rcl_timer_t *timer, int64_t last_call_time){
+#ifdef PICO_COUNT
 	uRosBridge::getInstance()->pubCount();
+#endif
 }
 
 /***
@@ -382,4 +420,20 @@ bool uRosBridge::publish(rcl_publisher_t *publisher,
 */
 rclc_support_t *uRosBridge::getSupport(){
 	return &xSupport;
+}
+
+void uRosBridge::setNodeName(char * name){
+	vPortFree(pNodeName);
+	pNodeName = (char *)pvPortMalloc( strlen(name) + 1 );
+	if (pNodeName != NULL){
+		strcpy(pNodeName, name);
+	}
+}
+
+void uRosBridge::setNamespace(char * name){
+	vPortFree(pNamespace);
+	pNamespace = (char *)pvPortMalloc( strlen(name) + 1 );
+	if (pNamespace != NULL){
+		strcpy(pNamespace, name);
+	}
 }

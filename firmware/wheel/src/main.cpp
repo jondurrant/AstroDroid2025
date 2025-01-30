@@ -33,6 +33,7 @@ extern"C"{
 #include "uRosBridge.h"
 
 #include "ConfigEntity.h"
+#include "NVSJson.h"
 
 
 //Standard Task priority
@@ -73,14 +74,31 @@ void mainTask(void *params){
 
 	d37.configPID( KP, KI, KD);
 
+	//Config
+	ConfigEntity entities;
+
+	//Get Node name from NVS
+	NVSJson *nvs = NVSJson::getInstance();
+	size_t nameLen = nvs->size(ROS2_NODE);
+	char *name =  (char *)pvPortMalloc(nameLen);
+	if (nvs->get_str ( ROS2_NODE,  name,  &nameLen) != NVS_OK){
+		printf("ERROR Retrieving ROS2_NODE from NVS\n");
+		nvs->printNVS();
+	}
+
+
 	//Start up a uROS Bridge
 	uRosBridge *bridge = uRosBridge::getInstance();
+	bridge->setNodeName(name);
 
 	//PubEntities entities;
-	//PubEntities entities;
-	ConfigEntity entities;
 	bridge->setuRosEntities(&entities);
+	bridge->setLed(DEBUG_LED1);
 	bridge->start("Bridge",  TASK_PRIORITY+2);
+
+	for (;;){
+		vTaskDelay(3000);
+	}
 
 
 
@@ -113,7 +131,7 @@ void vLaunch( void) {
 
 	//Start blink task
     TaskHandle_t task;
-    xTaskCreate(mainTask, "MainThread", configMINIMAL_STACK_SIZE, NULL, TASK_PRIORITY, &task);
+    xTaskCreate(mainTask, "MainThread", 1024*4, NULL, TASK_PRIORITY, &task);
 
     /* Start the tasks and timer running. */
     vTaskStartScheduler();
