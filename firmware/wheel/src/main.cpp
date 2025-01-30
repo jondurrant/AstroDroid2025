@@ -33,7 +33,9 @@ extern"C"{
 #include "uRosBridge.h"
 
 #include "ConfigEntity.h"
+#include "AstroEntities.h"
 #include "NVSJson.h"
+#include "MotorsAgent.h"
 
 
 //Standard Task priority
@@ -74,9 +76,6 @@ void mainTask(void *params){
 
 	d37.configPID( KP, KI, KD);
 
-	//Config
-	ConfigEntity entities;
-
 	//Get Node name from NVS
 	NVSJson *nvs = NVSJson::getInstance();
 	size_t nameLen = nvs->size(ROS2_NODE);
@@ -85,6 +84,28 @@ void mainTask(void *params){
 		printf("ERROR Retrieving ROS2_NODE from NVS\n");
 		nvs->printNVS();
 	}
+
+	//Config
+	ConfigEntity confEntities;
+	MotorsAgent motEntities;
+	motEntities.addMotor(
+			0,
+			MOTOR_A,
+			MOTOR_B,
+			ENCODER_A,
+			ENCODER_B
+			);
+	double kp = 0.3;
+	double kl = 0.001;
+	double kd = 0.01;
+	nvs->get_double( CONFIG_PID_KP, &kp);
+	nvs->get_double( CONFIG_PID_KL, &kl);
+	nvs->get_double( CONFIG_PID_KD, &kd);
+	motEntities.configAllPID(kp, kl, kd);
+	motEntities.start("Motors", TASK_PRIORITY);
+	AstroEntities entities;
+	entities.addEntity(&confEntities);
+	entities.addEntity(&motEntities);
 
 
 	//Start up a uROS Bridge

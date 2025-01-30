@@ -11,6 +11,8 @@
 
 #include <inttypes.h>
 #include <cmath>
+#include "ConfigEntity.h"
+#include "NVSJson.h"
 
 
 MotorsAgent::MotorsAgent() {
@@ -80,9 +82,10 @@ void MotorsAgent::configAllPID(float kP, float kI, float kD){
  */
 void MotorsAgent::setSpeedRPM(uint index,
 		float rpm, bool cw){
-	if (pMotors[index] != NULL){
-		pMotors[index]->setSpeedRPM(rpm, cw);
-	}
+	setSpeedRadPS(
+			index,
+			rpm* 0.10472,
+			cw);
 }
 
 /***
@@ -123,7 +126,7 @@ void MotorsAgent::run(){
 
 		pubJointState();
 
-		vTaskDelay(200);
+		vTaskDelay(50);
 	}
 }
 
@@ -145,11 +148,54 @@ configSTACK_DEPTH_TYPE MotorsAgent::getMaxStackSize(){
 void MotorsAgent::createEntities(
 		rcl_node_t *node,
 		rclc_support_t *support){
-	rclc_publisher_init_default(
-		&xPubJoint,
-		node,
-		ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
-		"joint_states");
+
+	if (pJointTopic != NULL){
+		vPortFree(pJointTopic);
+	}
+	NVSJson * nvs = NVSJson::getInstance();
+	size_t topicLen = nvs->size(TOPIC_PREFIX) + strlen(JOINT_TOPIC);
+	pJointTopic = (char *)pvPortMalloc(topicLen);
+	if (pJointTopic != NULL){
+		if (nvs->get_str(TOPIC_PREFIX, pJointTopic, &topicLen) == NVS_OK){
+			strcpy(&pJointTopic[strlen(pJointTopic)], JOINT_TOPIC);
+
+				rclc_publisher_init_default(
+					&xPubJoint,
+					node,
+					ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
+					pJointTopic);
+		} else {
+			printf("ERROR: MotorAgent can't read TOPIC Prefix from NVR\n");
+		}
+	} else {
+		printf("ERROR: MotorAgent Malloc failed\n");
+	}
+
+	if (pVelocityTopic != NULL) {
+			vPortFree(pVelocityTopic);
+	}
+	size_t velocityLen = nvs->size(TOPIC_PREFIX) + strlen(VELOCITY_TOPIC);
+	pVelocityTopic = (char *)pvPortMalloc(velocityLen);
+	if ( pVelocityTopic != NULL){
+		if (nvs->get_str(TOPIC_PREFIX, pVelocityTopic, &velocityLen) == NVS_OK){
+					strcpy(&pVelocityTopic[strlen(pVelocityTopic)], VELOCITY_TOPIC);
+
+					int res = rclc_subscription_init_default(
+							  &xSubVelocity,
+							  node,
+							 ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+							 pVelocityTopic
+							  );
+
+					if (res != RCL_RET_OK){
+						printf("ERROR: MotorAgent::createEntities failed to init subscriber \n");
+					}
+		} else {
+					printf("ERROR:MotorAgent  NVS does not contain TOPIC_PREFIX\n");
+		}
+	} else {
+		printf("ERROR: MotorAgent Malloc failed\n");
+	}
 }
 
 /***
@@ -162,6 +208,7 @@ void MotorsAgent::destroyEntities(
 		rclc_support_t *support){
 
 	rcl_publisher_fini(&xPubJoint, node);
+	rcl_subscription_fini(&xSubVelocity, 	node);
 }
 
 /***
@@ -169,7 +216,7 @@ void MotorsAgent::destroyEntities(
  * @return number of entities >=0
  */
 uint MotorsAgent::getCount(){
-	return 0;
+	return 1;
 }
 
 /***
@@ -177,7 +224,7 @@ uint MotorsAgent::getCount(){
  * @return
  */
 uint MotorsAgent::getHandles(){
-	return 1;
+	return 2;
 }
 
 
@@ -186,7 +233,18 @@ uint MotorsAgent::getHandles(){
  * @param executor
  */
 void MotorsAgent::addToExecutor(rclc_executor_t *executor){
-	//NOP
+	buildContext(&xSubVelocityContext, NULL);
+	rcl_ret_t res = rclc_executor_add_subscription_with_context(
+			executor,
+			&xSubVelocity,
+			&xVelocityMsg,
+			uRosEntities::subscriptionCallback,
+			&xSubVelocityContext,
+			ON_NEW_DATA);
+
+	if (res != RCL_RET_OK){
+		printf("ERROR: MotorsAgent::addToExecutor failed to add executor \n");
+	}
 }
 
 /***
@@ -197,7 +255,13 @@ void MotorsAgent::addToExecutor(rclc_executor_t *executor){
 void MotorsAgent::handleSubscriptionMsg(
 		const void* msg,
 		uRosSubContext_t* context){
-	//NOP
+
+	if (context == &xSubVelocityContext){
+			std_msgs__msg__Float32 * pFloatMsg = (std_msgs__msg__Float32 *) msg;
+
+			printf("Velocity is %f\n", pFloatMsg->data);
+			setSpeedRadPS(0, pFloatMsg->data, true);
+	}
 }
 
 

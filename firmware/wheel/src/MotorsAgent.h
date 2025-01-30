@@ -17,15 +17,18 @@ extern"C"{
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
-#include <std_msgs/msg/int32.h>
+#include <std_msgs/msg/float32.h>
 #include <sensor_msgs/msg/joint_state.h>
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 }
 
 #ifndef NUM_MOTORS
-#define NUM_MOTORS 2
+#define NUM_MOTORS 1
 #endif
+
+#define JOINT_TOPIC "/joint_state"
+#define VELOCITY_TOPIC "/velocity"
 
 class MotorsAgent : public Agent, public uRosEntities {
 public:
@@ -151,6 +154,13 @@ private:
 
 	rcl_publisher_t xPubJoint;
 	sensor_msgs__msg__JointState xJointStateMsg;
+	char * pJointTopic = NULL;
+
+	rcl_subscription_t 					xSubVelocity;
+	uRosSubContext_t   				xSubVelocityContext;
+	std_msgs__msg__Float32 	xVelocityMsg;
+	char * pVelocityTopic = NULL;
+
 };
 
 #endif /* FIRMWARE_SRC_MOTORSAGENT_H_ */

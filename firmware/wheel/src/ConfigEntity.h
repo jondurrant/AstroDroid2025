@@ -25,6 +25,10 @@ extern "C"{
 #define CONFIG_BUFFER_SIZE 1024
 #define CONFIG_MAX_KEYS 12
 
+#define CONFIG_PID_KP "PID_KP"
+#define CONFIG_PID_KL "PID_KL"
+#define CONFIG_PID_KD "PID_KD"
+
 
 
 class ConfigEntity : public  uRosEntities {

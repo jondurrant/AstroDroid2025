@@ -269,6 +269,18 @@ void ConfigEntity::setNeededDefaults(){
 		nvs->set_str(TOPIC_PREFIX,  prefix);
 	}
 
+	if (! nvs->contains(CONFIG_PID_KP)){
+		nvs->set_double(CONFIG_PID_KP,  0.3);
+	}
+
+	if (! nvs->contains(CONFIG_PID_KL)){
+		nvs->set_double(CONFIG_PID_KL,  0.001);
+	}
+
+	if (! nvs->contains(CONFIG_PID_KD)){
+		nvs->set_double(CONFIG_PID_KD,  0.01);
+	}
+
 	nvs->commit();
 }
 

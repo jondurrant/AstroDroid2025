@@ -18,6 +18,8 @@ add_executable(${NAME}
         
         ConfigEntity.cpp
         NVSJson.cpp
+        AstroEntities.cpp
+        MotorsAgent.cpp
         )
 
 # Pull in our pico_stdlib which pulls in commonly used features
