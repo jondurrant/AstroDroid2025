@@ -9,6 +9,9 @@
 
 #include "uRosBridge.h"
 
+#define UBRIDGE_NEOPIXEL
+
+
 /***
  * Agent states
  */
@@ -92,6 +95,7 @@ void uRosBridge::run(){
 	for(;;){
 		switch (state) {
 			case WAITING_AGENT:
+			  status(uRosOffline);
 			  state = pingAgent() ? AGENT_AVAILABLE : WAITING_AGENT;
 			  break;
 			case AGENT_AVAILABLE:
@@ -99,6 +103,7 @@ void uRosBridge::run(){
 			  state = AGENT_CONNECTED ;
 			  break;
 			case AGENT_CONNECTED:
+			  status(uRosOnline);
 			  state = pingAgent() ? AGENT_CONNECTED : AGENT_DISCONNECTED;
 			  if (state == AGENT_CONNECTED) {
 				rclc_executor_spin_some(&xExecutor, RCL_MS_TO_NS(10));
@@ -221,13 +226,15 @@ bool uRosBridge::pingAgent(){
     const int timeout_ms = 100;
     const uint8_t attempts = 1;
 
+    status(uRosPing);
+
     rcl_ret_t ret = rmw_uros_ping_agent(timeout_ms, attempts);
 
     if (ret != RCL_RET_OK){
-    	gpio_put(xLedPad, 0);
+    	status(uRosPingFailed);
     	return false;
     } else {
-    	gpio_put(xLedPad, 1);
+    	status(uRosPingOK);
     }
     return true;
 }
@@ -238,9 +245,48 @@ bool uRosBridge::pingAgent(){
  */
 void uRosBridge::setLed(uint8_t pad){
 	xLedPad = pad;
+
+#ifndef UBRIDGE_NEOPIXEL
 	gpio_init(xLedPad);
 	gpio_set_dir(xLedPad, GPIO_OUT);
 	gpio_put(xLedPad, 0);
+#else
+	xNeopixel.setBrightness(64);
+#endif
+}
+
+void uRosBridge::status(URosStatus s){
+
+#ifndef UBRIDGE_NEOPIXEL
+	if ((s ==uRosOnline ) || (s == uRosPingOK)){
+		gpio_put(xLedPad, 1);
+	} else {
+		gpio_put(xLedPad, 0);
+	}
+#else
+
+
+	switch(s){
+	case uRosOffline:
+		xNeopixel.fill( PicoLed::RGB(0xFF, 0, 0) );
+		break;
+	case uRosOnline:
+		xNeopixel.fill( PicoLed::RGB(0, 0xFF, 0) );
+		break;
+	case uRosPingFailed:
+		xNeopixel.fill( PicoLed::RGB(0xFF, 0xBF, 0) );
+		break;
+	case uRosPingOK:
+		xNeopixel.fill( PicoLed::RGB(0, 0xFF, 0) );
+		break;
+	case uRosPing:
+		xNeopixel.fill( PicoLed::RGB(0, 0, 0xFF) );
+		break;
+	default:
+		xNeopixel.fill( PicoLed::RGB(0, 0, 0) );
+	}
+	xNeopixel.show();
+#endif
 }
 
 /***

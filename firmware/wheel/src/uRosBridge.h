@@ -37,6 +37,9 @@ extern"C"{
 #include "freertos_allocators.h"
 }
 
+#include "PicoLed.hpp"
+#include "AstroDroidConfig.h"
+
 
 #define PUB_Q_LEN 			10
 #define UROS_MAX_PUB_MSGS	5
@@ -46,6 +49,14 @@ extern"C"{
 
 
 //#define PICO_COUNT
+
+enum URosStatus {
+	uRosOffline,
+	uRosOnline,
+	uRosPingFailed,
+	uRosPingOK,
+	uRosPing
+};
 
 class uRosBridge : public Agent {
 public:
@@ -128,6 +139,7 @@ private:
 	 */
 	static void timerCallback(rcl_timer_t *timer, int64_t last_call_time);
 
+	void status(URosStatus s);
 
 	static uRosBridge * pSingleton;
 	rcl_publisher_t xPublisher;
@@ -138,7 +150,7 @@ private:
 	rclc_support_t xSupport;
 	rclc_executor_t xExecutor;
 
-	uint8_t xLedPad = 0;
+	uint8_t xLedPad = 0xff;
 
 	uRosEntities * pURosEntities = NULL;
 
@@ -146,6 +158,12 @@ private:
 
 	 char * pNodeName = NULL;
 	 char *pNamespace = NULL;
+
+	 PicoLed::PicoLedController xNeopixel = PicoLed::addLeds<PicoLed::WS2812B>(
+				pio0, 0,
+				ZERO_NEOPIXEL,
+				1,
+				PicoLed::FORMAT_GRB);
 
 
 protected:

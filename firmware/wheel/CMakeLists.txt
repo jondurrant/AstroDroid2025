@@ -33,6 +33,8 @@ include(tiny-json.cmake)
 set(JSON_MAKER_DIR "${CMAKE_CURRENT_LIST_DIR}/../../lib/json-maker")
 include(json-maker.cmake)
 
+include(../../lib/PicoLED/PicoLed.cmake)
+
 #Add main source directory
 add_subdirectory(src)
 

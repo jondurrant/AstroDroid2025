@@ -114,7 +114,8 @@ void mainTask(void *params){
 
 	//PubEntities entities;
 	bridge->setuRosEntities(&entities);
-	bridge->setLed(DEBUG_LED1);
+	//bridge->setLed(DEBUG_LED1);
+	bridge->setLed(ZERO_NEOPIXEL);
 	bridge->start("Bridge",  TASK_PRIORITY+2);
 
 	for (;;){

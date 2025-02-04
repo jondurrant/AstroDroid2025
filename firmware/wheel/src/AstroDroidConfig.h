@@ -36,6 +36,8 @@
 
 #define NEOPIXEL_NUM	11
 
+#define ZERO_NEOPIXEL	16
+
 
 
 

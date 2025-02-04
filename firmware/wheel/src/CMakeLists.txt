@@ -35,6 +35,7 @@ target_link_libraries(${NAME}
      onboard_nvs
      tiny_json
      json_maker
+     PicoLed
 	)
 	
 target_include_directories(${NAME} PRIVATE
