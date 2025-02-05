@@ -273,8 +273,8 @@ void ConfigEntity::setNeededDefaults(){
 		nvs->set_double(CONFIG_PID_KP,  0.3);
 	}
 
-	if (! nvs->contains(CONFIG_PID_KL)){
-		nvs->set_double(CONFIG_PID_KL,  0.001);
+	if (! nvs->contains(CONFIG_PID_KI)){
+		nvs->set_double(CONFIG_PID_KI,  0.001);
 	}
 
 	if (! nvs->contains(CONFIG_PID_KD)){

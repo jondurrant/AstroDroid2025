@@ -19,6 +19,7 @@ extern"C"{
 #include <rclc/rclc.h>
 #include <std_msgs/msg/float32.h>
 #include <sensor_msgs/msg/joint_state.h>
+#include <control_msgs/msg/pid_state.h>
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 }
@@ -29,6 +30,7 @@ extern"C"{
 
 #define JOINT_TOPIC "/joint_state"
 #define VELOCITY_TOPIC "/velocity"
+#define PID_TOPIC "/pid"
 
 class MotorsAgent : public Agent, public uRosEntities {
 public:
@@ -149,12 +151,28 @@ private:
 	void initJointState();
 	void pubJointState();
 
+	void initPidState();
+	void pubPidState(
+			float err,
+			float perr,
+			float ierr,
+			float derr,
+			float kp,
+			float ki,
+			float kd,
+			float velocity
+			);
+
 
 	MotorPID *pMotors[NUM_MOTORS];
 
 	rcl_publisher_t xPubJoint;
 	sensor_msgs__msg__JointState xJointStateMsg;
 	char * pJointTopic = NULL;
+
+	rcl_publisher_t xPubPid;
+	control_msgs__msg__PidState xPidStateMsg;
+	char * pPidTopic = NULL;
 
 	rcl_subscription_t 					xSubVelocity;
 	uRosSubContext_t   				xSubVelocityContext;

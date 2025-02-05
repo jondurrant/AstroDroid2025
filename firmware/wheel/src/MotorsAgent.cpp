@@ -110,17 +110,36 @@ void MotorsAgent::setSpeedRadPS(uint index,
  */
 void MotorsAgent::run(){
 
+	float perr, ierr, derr, err, vel;
+	float kp, ki, kd;
+
 	initJointState();
+	initPidState();
+
+
 
 	for (;;){
 		for (uint i=0; i < NUM_MOTORS; i++){
 			if (pMotors[i] != NULL){
-				float err = pMotors[i]->doPID();
+				float pid = pMotors[i]->doPID(&perr, &ierr, &derr);
 
-				//printf("Error(%u) = %.3f\n",i, err);
+				pMotors[i]->getKPID(kp, ki, kd);
+				vel = pMotors[i]->getAvgRadPerSec();
 
-				//printf("%u Rad %f\n", i,
-				//		pMotors[i]->getRadians());
+				float err = pMotors[i]->getTargetSpeedRadPS() -
+						pMotors[i]->getAvgRadPerSec();
+
+				pubPidState(
+						err,
+						perr,
+						ierr,
+						derr,
+						kp,
+						ki,
+						kd,
+						vel
+				);
+
 			}
 		}
 
@@ -149,6 +168,7 @@ void MotorsAgent::createEntities(
 		rcl_node_t *node,
 		rclc_support_t *support){
 
+	//Joint State
 	if (pJointTopic != NULL){
 		vPortFree(pJointTopic);
 	}
@@ -171,6 +191,7 @@ void MotorsAgent::createEntities(
 		printf("ERROR: MotorAgent Malloc failed\n");
 	}
 
+	//Velocity
 	if (pVelocityTopic != NULL) {
 			vPortFree(pVelocityTopic);
 	}
@@ -196,6 +217,28 @@ void MotorsAgent::createEntities(
 	} else {
 		printf("ERROR: MotorAgent Malloc failed\n");
 	}
+
+	//Pid State
+	if (pPidTopic != NULL){
+		vPortFree(pPidTopic);
+	}
+	topicLen = nvs->size(TOPIC_PREFIX) + strlen(PID_TOPIC);
+	pPidTopic = (char *)pvPortMalloc(topicLen);
+	if (pPidTopic != NULL){
+		if (nvs->get_str(TOPIC_PREFIX, pPidTopic, &topicLen) == NVS_OK){
+			strcpy(&pPidTopic[strlen(pPidTopic)], PID_TOPIC);
+
+				rclc_publisher_init_default(
+					&xPubPid,
+					node,
+					ROSIDL_GET_MSG_TYPE_SUPPORT(control_msgs, msg, PidState),
+					pPidTopic);
+		} else {
+			printf("ERROR: MotorAgent can't read TOPIC Prefix from NVR\n");
+		}
+	} else {
+		printf("ERROR: MotorAgent Malloc failed\n");
+	}
 }
 
 /***
@@ -208,6 +251,7 @@ void MotorsAgent::destroyEntities(
 		rclc_support_t *support){
 
 	rcl_publisher_fini(&xPubJoint, node);
+	rcl_publisher_fini(&xPubPid, node);
 	rcl_subscription_fini(&xSubVelocity, 	node);
 }
 
@@ -224,7 +268,7 @@ uint MotorsAgent::getCount(){
  * @return
  */
 uint MotorsAgent::getHandles(){
-	return 2;
+	return 3;
 }
 
 
@@ -332,6 +376,56 @@ MotorPID * MotorsAgent::getMotor(uint index){
 		return NULL;
 	}
 	return pMotors[index];
+}
+
+void MotorsAgent::initPidState(){
+	control_msgs__msg__PidState__init(&xPidStateMsg);
+	xPidStateMsg.error = 0.0;
+	xPidStateMsg.error_dot = 0.0;
+	xPidStateMsg.p_error = 0.0;
+	xPidStateMsg.i_error = 0.0;
+	xPidStateMsg.d_error = 0.0;
+	xPidStateMsg.p_term = 0.0;
+	xPidStateMsg.i_term = 0.0;
+	xPidStateMsg.d_term = 0.0;
+	xPidStateMsg.i_max = 0.0;
+	xPidStateMsg.i_min = 0.0;
+	xPidStateMsg.output = 0.0;
+}
+
+void MotorsAgent::pubPidState(
+		float err,
+		float perr,
+		float ierr,
+		float derr,
+		float kp,
+		float ki,
+		float kd,
+		float velocity
+		){
+	//Populate the PID  message
+	int64_t time = rmw_uros_epoch_nanos();
+	xPidStateMsg.header.stamp.sec = time / 1000000000;
+	xPidStateMsg.header.stamp.nanosec = time % 1000000000;
+
+	xPidStateMsg.timestep.sec  = xPidStateMsg.header.stamp.sec ;
+	xPidStateMsg.timestep.nanosec = xPidStateMsg.header.stamp.nanosec;
+	xPidStateMsg.error = err;
+	xPidStateMsg.p_error = perr;
+	xPidStateMsg.i_error = ierr;
+	xPidStateMsg.d_error = derr;
+	xPidStateMsg.p_term = kp;
+	xPidStateMsg.i_term = ki;
+	xPidStateMsg.d_term = kd;
+	xPidStateMsg.output = velocity;
+
+
+	if (!uRosBridge::getInstance()->publish(&xPubPid,
+			&xPidStateMsg,
+			this,
+			NULL)){
+		printf("PID Pub failed\n");
+	}
 }
 
 

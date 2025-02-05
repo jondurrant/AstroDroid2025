@@ -26,7 +26,7 @@ extern "C"{
 #define CONFIG_MAX_KEYS 12
 
 #define CONFIG_PID_KP "PID_KP"
-#define CONFIG_PID_KL "PID_KL"
+#define CONFIG_PID_KI "PID_KI"
 #define CONFIG_PID_KD "PID_KD"
 
 

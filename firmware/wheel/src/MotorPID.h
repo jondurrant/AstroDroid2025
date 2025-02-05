@@ -18,13 +18,16 @@ public:
 
 
 	void setSpeedRadPS(float rps, bool cw);
+	float getTargetSpeedRadPS();
 
 	void configPID(float kP, float kI, float kD);
 
 	float pid (float &sp, float &pv, float &err,
 			float &p, float &i, float &d);
 
-    float doPID();
+    float doPID(float *pP = NULL, float *pI = NULL, float *pD=NULL);
+
+    void getKPID(float &kp, float &ki, float &kd);
 protected:
 
 	virtual void handleRotate(bool cw);

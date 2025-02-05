@@ -96,12 +96,13 @@ void mainTask(void *params){
 			ENCODER_B
 			);
 	double kp = 0.3;
-	double kl = 0.001;
+	double ki = 0.001;
 	double kd = 0.01;
 	nvs->get_double( CONFIG_PID_KP, &kp);
-	nvs->get_double( CONFIG_PID_KL, &kl);
+	nvs->get_double( CONFIG_PID_KI, &ki);
 	nvs->get_double( CONFIG_PID_KD, &kd);
-	motEntities.configAllPID(kp, kl, kd);
+	printf("PID Config (%.3f,  %.3f, %.3f)\n", kp, ki, kd);
+	motEntities.configAllPID(kp, ki, kd);
 	motEntities.start("Motors", TASK_PRIORITY);
 	AstroEntities entities;
 	entities.addEntity(&confEntities);

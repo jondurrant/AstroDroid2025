@@ -40,7 +40,7 @@ void MotorPID::configPID(float kP, float kI, float kD){
 }
 
 
-float MotorPID::doPID(){
+float MotorPID::doPID(float *pP, float *pI, float *pD){
 
 	// Throttle 1.0 = 320RPM
 	// Throttle 0.2 = 40RPM
@@ -48,7 +48,21 @@ float MotorPID::doPID(){
 	float sp, pv;
 	float p, i, d;
 
-	float pid = this->pid(sp, pv, error, p, i, d);
+	float *lpP = &p;
+	float *lpI = &i;
+	float *lpD = &d;
+
+	if (pP != NULL){
+		lpP = pP;
+	}
+	if (pI != NULL){
+		lpI = pI;
+	}
+	if (pD != NULL){
+		lpD = pD;
+	}
+
+	float pid = this->pid(sp, pv, error, *lpP, *lpI, *lpD);
 	xCumErr += error;
 	xLastErr = error;
 
@@ -84,4 +98,14 @@ float MotorPID::pid (float &sp, float &pv, float &err,
 
 	return p + i + d;
 
+}
+
+void MotorPID::getKPID(float &kp, float &ki, float &kd){
+	kp = xKP;
+	ki = xKI;
+	kd = xKD;
+}
+
+float MotorPID::getTargetSpeedRadPS(){
+	return xTargetRadPS;
 }
