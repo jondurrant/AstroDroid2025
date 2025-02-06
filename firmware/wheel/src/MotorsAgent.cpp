@@ -116,7 +116,7 @@ void MotorsAgent::run(){
 	initJointState();
 	initPidState();
 
-
+	initJointJog();
 
 	for (;;){
 		for (uint i=0; i < NUM_MOTORS; i++){
@@ -239,6 +239,14 @@ void MotorsAgent::createEntities(
 	} else {
 		printf("ERROR: MotorAgent Malloc failed\n");
 	}
+
+	//JointJog
+	int res = rclc_subscription_init_default(
+				  &xSubJointJog,
+				  node,
+				 ROSIDL_GET_MSG_TYPE_SUPPORT(control_msgs, msg, JointJog),
+				 JOINT_JOG_TOPIC
+				  );
 }
 
 /***
@@ -253,6 +261,7 @@ void MotorsAgent::destroyEntities(
 	rcl_publisher_fini(&xPubJoint, node);
 	rcl_publisher_fini(&xPubPid, node);
 	rcl_subscription_fini(&xSubVelocity, 	node);
+	rcl_subscription_fini(&xSubJointJog, node);
 }
 
 /***
@@ -260,7 +269,7 @@ void MotorsAgent::destroyEntities(
  * @return number of entities >=0
  */
 uint MotorsAgent::getCount(){
-	return 1;
+	return 2;
 }
 
 /***
@@ -268,7 +277,7 @@ uint MotorsAgent::getCount(){
  * @return
  */
 uint MotorsAgent::getHandles(){
-	return 3;
+	return 4;
 }
 
 
@@ -285,10 +294,21 @@ void MotorsAgent::addToExecutor(rclc_executor_t *executor){
 			uRosEntities::subscriptionCallback,
 			&xSubVelocityContext,
 			ON_NEW_DATA);
-
 	if (res != RCL_RET_OK){
 		printf("ERROR: MotorsAgent::addToExecutor failed to add executor \n");
 	}
+
+	buildContext(&xSubJointJogContext, NULL);
+	res = rclc_executor_add_subscription_with_context(
+				executor,
+				&xSubJointJog,
+				&xJointJogMsg,
+				uRosEntities::subscriptionCallback,
+				&xSubJointJogContext,
+				ON_NEW_DATA);
+		if (res != RCL_RET_OK){
+			printf("ERROR: MotorsAgent::addToExecutor failed to add executor \n");
+		}
 }
 
 /***
@@ -306,6 +326,31 @@ void MotorsAgent::handleSubscriptionMsg(
 			printf("Velocity is %f\n", pFloatMsg->data);
 			setSpeedRadPS(0, pFloatMsg->data, true);
 	}
+
+	if (context == &xSubJointJogContext){
+		control_msgs__msg__JointJog * pJointJogMsg = (control_msgs__msg__JointJog *) msg;
+		for (int i=0; i < pJointJogMsg->joint_names.size; i++){
+			for (int j=0; j < NUM_MOTORS; j++){
+				if (rosidl_runtime_c__String__are_equal(
+							&xMotorsName[j],
+							&pJointJogMsg->joint_names.data[i])
+						){
+					if (pJointJogMsg->displacements.size == 0){
+						//Velocity msg
+						printf("Velocity(%d) is %f\n",
+								i,
+								pJointJogMsg->velocities.data[i]);
+						setSpeedRadPS(
+								0,
+								pJointJogMsg->velocities.data[i],
+								true);
+					} else {
+						printf("Turn to pos not implimented\n");
+					}
+				} // if Name
+			}// for motors
+		} // for joing names in msg
+	}// if Context
 }
 
 
@@ -425,6 +470,42 @@ void MotorsAgent::pubPidState(
 			this,
 			NULL)){
 		printf("PID Pub failed\n");
+	}
+}
+
+void MotorsAgent::initJointJog(){
+	int jointCount = 2;
+	control_msgs__msg__JointJog__init(&xJointJogMsg);
+	rosidl_runtime_c__String__Sequence__init(&xJointJogMsg.joint_names, jointCount);
+	xJointJogMsg.joint_names.size=jointCount;
+	xJointJogMsg.joint_names.capacity=jointCount;
+	for (int i=0; i < jointCount; i++){
+		rosidl_runtime_c__String__assign(&xJointJogMsg.joint_names.data[i], "wheel");
+	}
+	rosidl_runtime_c__double__Sequence__init(&xJointJogMsg.displacements, jointCount);
+	xJointJogMsg.displacements.size=jointCount;
+	xJointJogMsg.displacements.capacity=jointCount;
+	rosidl_runtime_c__double__Sequence__init(&xJointJogMsg.velocities, jointCount);
+	xJointJogMsg.velocities.size=jointCount;
+	xJointJogMsg.velocities.capacity=jointCount;
+
+	//Motor name initialisation
+	rosidl_runtime_c__String__init(&xMotorsName[0]);
+	bool isLeft = false;
+	NVSJson *nvs = NVSJson::getInstance();
+	nvs->get_bool(CONFIG_LEFT,  &isLeft);
+	if (isLeft){
+		rosidl_runtime_c__String__assign(
+				&xMotorsName[0],
+				MOTOR_LEFT
+				);
+		printf("I am %s\n",MOTOR_LEFT);
+	} else {
+		rosidl_runtime_c__String__assign(
+				&xMotorsName[0],
+				MOTOR_RIGHT
+				);
+		printf("I am %s\n",MOTOR_RIGHT);
 	}
 }
 

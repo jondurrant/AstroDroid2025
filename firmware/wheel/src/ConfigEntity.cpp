@@ -281,6 +281,10 @@ void ConfigEntity::setNeededDefaults(){
 		nvs->set_double(CONFIG_PID_KD,  0.01);
 	}
 
+	if (! nvs->contains(CONFIG_LEFT)){
+		nvs->set_bool(CONFIG_LEFT,  false);
+	}
+
 	nvs->commit();
 }
 

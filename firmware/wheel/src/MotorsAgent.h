@@ -22,6 +22,7 @@ extern"C"{
 #include <control_msgs/msg/pid_state.h>
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
+#include <control_msgs/msg/joint_jog.h>
 }
 
 #ifndef NUM_MOTORS
@@ -31,6 +32,10 @@ extern"C"{
 #define JOINT_TOPIC "/joint_state"
 #define VELOCITY_TOPIC "/velocity"
 #define PID_TOPIC "/pid"
+#define JOINT_JOG_TOPIC "/Astro/wheels_jog"
+#define MOTOR_LEFT "LEFT"
+#define MOTOR_RIGHT "RIGHT"
+
 
 class MotorsAgent : public Agent, public uRosEntities {
 public:
@@ -163,8 +168,11 @@ private:
 			float velocity
 			);
 
+	void initJointJog();
+
 
 	MotorPID *pMotors[NUM_MOTORS];
+	rosidl_runtime_c__String xMotorsName[NUM_MOTORS];
 
 	rcl_publisher_t xPubJoint;
 	sensor_msgs__msg__JointState xJointStateMsg;
@@ -178,6 +186,13 @@ private:
 	uRosSubContext_t   				xSubVelocityContext;
 	std_msgs__msg__Float32 	xVelocityMsg;
 	char * pVelocityTopic = NULL;
+
+	rcl_subscription_t 					xSubJointJog;
+	uRosSubContext_t   				xSubJointJogContext;
+	control_msgs__msg__JointJog 	xJointJogMsg;
+	char * pJointJogTopic = NULL;
+
+
 
 };
 

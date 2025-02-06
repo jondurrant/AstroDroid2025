@@ -29,6 +29,8 @@ extern "C"{
 #define CONFIG_PID_KI "PID_KI"
 #define CONFIG_PID_KD "PID_KD"
 
+#define CONFIG_LEFT "LEFT"
+
 
 
 class ConfigEntity : public  uRosEntities {
