@@ -111,6 +111,7 @@ float MotorPID::getTargetSpeedRadPS(){
 }
 
 void MotorPID::setDeltaRadPS(float deltaRad, float rps, bool cw){
+	//printf("setDeltaRadPS(%.2f, %.2f, %d)\n", deltaRad, rps, cw);
 	turnDeltaRadians(deltaRad, 0.0, cw);
 	setSpeedRadPS(rps, cw);
 }

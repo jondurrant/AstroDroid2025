@@ -181,7 +181,7 @@ void ConfigEntity::handleSubscriptionMsg(
 					printf("type String: %s\n", json_getValue(sib));
 					break;
 				case JSON_BOOLEAN:
-					nvs->set_u8 (
+					nvs->set_bool (
 							json_getName(sib),
 							json_getBoolean(sib)
 							);

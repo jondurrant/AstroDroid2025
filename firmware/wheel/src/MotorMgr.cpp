@@ -41,7 +41,10 @@ void MotorMgr::setThrottle(float percent, bool cw){
 	xThrottle = percent;
 	xCW = cw;
 
+	//printf("setThrottle(%.2f, %d)\n", percent, cw);
+
 	if (xThrottle < 0 ){
+		printf("Throttle was < 0, resetting to zero\n");
 		xThrottle == 0.0;
 	}
 

@@ -91,6 +91,18 @@ char * NVSJson::toJSONKey(char *dest,  size_t* remLen , const char * key,  nvs_t
 
 	char * res = dest;
 	switch(type){
+	case NVS_TYPE_BOOL:{
+			bool b;
+			if (get_bool ( key, &b) == NVS_OK){
+				res = json_bool(
+						dest,
+						key,
+						b,
+						remLen
+						);
+			}
+			break;
+		}
 	case NVS_TYPE_U8:{
 		uint8_t v;
 		if (get_u8 ( key, &v) == NVS_OK){
