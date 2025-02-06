@@ -97,6 +97,15 @@ public:
 	void setSpeedRadPS(uint index, float rps, bool cw);
 
 	/***
+	 * Turn to delta possition at speed
+	 * @param index of the motor
+	 * @param deltaRad radians to turn
+	 * @param rps radians per second
+	 * @param cw  direction - true if clockwise
+	 */
+	void setDeltaRadPS(uint index, float deltaRad, float rps, bool cw);
+
+	/***
 	 * Create the publishing entities
 	 * @param node
 	 * @param support

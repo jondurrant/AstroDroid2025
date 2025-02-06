@@ -345,7 +345,16 @@ void MotorsAgent::handleSubscriptionMsg(
 								pJointJogMsg->velocities.data[i],
 								true);
 					} else {
-						printf("Turn to pos not implimented\n");
+						//Displacement msg
+						printf("Displacement(%d) to %.2f at %.2f\n",
+								i,
+								pJointJogMsg->displacements.data[i],
+								pJointJogMsg->velocities.data[i]);
+						setDeltaRadPS(
+								0,
+								pJointJogMsg->displacements.data[i],
+								pJointJogMsg->velocities.data[i],
+								true);
 					}
 				} // if Name
 			}// for motors
@@ -509,4 +518,13 @@ void MotorsAgent::initJointJog(){
 	}
 }
 
+void MotorsAgent::setDeltaRadPS(uint index, float deltaRad, float rps, bool cw){
+	if (pMotors[index] != NULL){
+		if (rps >= 0.0){
+			pMotors[index]->setDeltaRadPS(fabs(deltaRad), rps, cw);
+		} else {
+			pMotors[index]->setDeltaRadPS(fabs(deltaRad), fabs(rps), !cw);
+		}
+	}
+}
 

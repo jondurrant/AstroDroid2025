@@ -130,6 +130,7 @@ void MotorMgr::handleRotate(bool cw){
 		if (xDoDeltaPos <= 0){
 			setThrottle(0, true);
 			xDoDelta = false;
+			targetStop();
 		}
 	}
 }
@@ -225,4 +226,7 @@ void MotorMgr::printConfig(){
 	printf("Radians per Tick %f\n", xRadTick);
 }
 
+void MotorMgr::targetStop(){
+	//NOP
+}
 

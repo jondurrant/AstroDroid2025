@@ -20,6 +20,8 @@ public:
 	void setSpeedRadPS(float rps, bool cw);
 	float getTargetSpeedRadPS();
 
+	void setDeltaRadPS(float deltaRad, float rps, bool cw);
+
 	void configPID(float kP, float kI, float kD);
 
 	float pid (float &sp, float &pv, float &err,
@@ -31,6 +33,8 @@ public:
 protected:
 
 	virtual void handleRotate(bool cw);
+
+	virtual void targetStop();
 
 
 

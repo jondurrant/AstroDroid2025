@@ -109,3 +109,13 @@ void MotorPID::getKPID(float &kp, float &ki, float &kd){
 float MotorPID::getTargetSpeedRadPS(){
 	return xTargetRadPS;
 }
+
+void MotorPID::setDeltaRadPS(float deltaRad, float rps, bool cw){
+	turnDeltaRadians(deltaRad, 0.0, cw);
+	setSpeedRadPS(rps, cw);
+}
+
+void MotorPID::targetStop(){
+	setSpeedRadPS(0.0, true);
+}
+

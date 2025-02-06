@@ -100,6 +100,8 @@ protected:
 
 	virtual void checkStopped();
 
+	virtual void targetStop();
+
 	bool xCW = true;
 
 private:
