@@ -202,6 +202,7 @@ private:
 	char * pJointJogTopic = NULL;
 
 
+	bool xIsLeft = false;
 
 };
 

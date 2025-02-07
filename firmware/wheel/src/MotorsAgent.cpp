@@ -335,6 +335,11 @@ void MotorsAgent::handleSubscriptionMsg(
 							&xMotorsName[j],
 							&pJointJogMsg->joint_names.data[i])
 						){
+
+					float vel = pJointJogMsg->velocities.data[i];
+					if (xIsLeft){
+						vel = vel * (-1.0);
+					}
 					if (pJointJogMsg->displacements.size == 0){
 						//Velocity msg
 						printf("Velocity(%d) is %f\n",
@@ -342,18 +347,18 @@ void MotorsAgent::handleSubscriptionMsg(
 								pJointJogMsg->velocities.data[i]);
 						setSpeedRadPS(
 								0,
-								pJointJogMsg->velocities.data[i],
+								vel,
 								true);
 					} else {
 						//Displacement msg
 						printf("Displacement(%d) to %.2f at %.2f\n",
 								i,
 								pJointJogMsg->displacements.data[i],
-								pJointJogMsg->velocities.data[i]);
+								vel);
 						setDeltaRadPS(
 								0,
 								pJointJogMsg->displacements.data[i],
-								pJointJogMsg->velocities.data[i],
+								vel,
 								true);
 					}
 				} // if Name
@@ -500,10 +505,9 @@ void MotorsAgent::initJointJog(){
 
 	//Motor name initialisation
 	rosidl_runtime_c__String__init(&xMotorsName[0]);
-	bool isLeft = false;
 	NVSJson *nvs = NVSJson::getInstance();
-	nvs->get_bool(CONFIG_LEFT,  &isLeft);
-	if (isLeft){
+	nvs->get_bool(CONFIG_LEFT,  &xIsLeft);
+	if (xIsLeft){
 		rosidl_runtime_c__String__assign(
 				&xMotorsName[0],
 				MOTOR_LEFT
