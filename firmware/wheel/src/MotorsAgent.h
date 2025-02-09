@@ -29,7 +29,7 @@ extern"C"{
 #define NUM_MOTORS 1
 #endif
 
-#define JOINT_TOPIC "/joint_state"
+#define JOINT_TOPIC "/Astro/joint_state"
 #define VELOCITY_TOPIC "/velocity"
 #define PID_TOPIC "/pid"
 #define JOINT_JOG_TOPIC "/Astro/wheels_jog"

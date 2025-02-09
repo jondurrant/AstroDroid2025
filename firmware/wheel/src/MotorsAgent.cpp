@@ -113,10 +113,11 @@ void MotorsAgent::run(){
 	float perr, ierr, derr, err, vel;
 	float kp, ki, kd;
 
+	initJointJog();
 	initJointState();
 	initPidState();
 
-	initJointJog();
+
 
 	for (;;){
 		for (uint i=0; i < NUM_MOTORS; i++){
@@ -167,13 +168,16 @@ configSTACK_DEPTH_TYPE MotorsAgent::getMaxStackSize(){
 void MotorsAgent::createEntities(
 		rcl_node_t *node,
 		rclc_support_t *support){
+	size_t topicLen;
+	NVSJson * nvs = NVSJson::getInstance();
 
 	//Joint State
+	/*// NO LONGER PUBLISHING to NODE SPECIFIC CHANNEL
 	if (pJointTopic != NULL){
 		vPortFree(pJointTopic);
 	}
 	NVSJson * nvs = NVSJson::getInstance();
-	size_t topicLen = nvs->size(TOPIC_PREFIX) + strlen(JOINT_TOPIC);
+	topicLen = nvs->size(TOPIC_PREFIX) + strlen(JOINT_TOPIC);
 	pJointTopic = (char *)pvPortMalloc(topicLen);
 	if (pJointTopic != NULL){
 		if (nvs->get_str(TOPIC_PREFIX, pJointTopic, &topicLen) == NVS_OK){
@@ -190,6 +194,12 @@ void MotorsAgent::createEntities(
 	} else {
 		printf("ERROR: MotorAgent Malloc failed\n");
 	}
+	*/
+	rclc_publisher_init_default(
+				&xPubJoint,
+				node,
+				ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
+				JOINT_TOPIC);
 
 	//Velocity
 	if (pVelocityTopic != NULL) {
@@ -389,6 +399,17 @@ void MotorsAgent::initJointState(){
 	//Name
 	rosidl_runtime_c__String__Sequence__init(
 			&xJointStateMsg.name, NUM_MOTORS);
+#if NUM_MOTORS == 1
+	if (xIsLeft){
+		sprintf(name, MOTOR_LEFT);
+	} else {
+		sprintf(name, MOTOR_RIGHT);
+	}
+	if (!rosidl_runtime_c__String__assign(
+			&xJointStateMsg.name.data[0], name)){
+		printf("ERROR: Joined assignment failed\n");
+	}
+#else
 	for (uint i=0; i < NUM_MOTORS; i++){
 		sprintf(name, "motor_%u", i);
 		if (!rosidl_runtime_c__String__assign(
@@ -396,6 +417,7 @@ void MotorsAgent::initJointState(){
 			printf("ERROR: Joined assignment failed\n");
 		}
 	}
+#endif
 	xJointStateMsg.name.size=NUM_MOTORS;
 	xJointStateMsg.name.capacity=NUM_MOTORS;
 }
