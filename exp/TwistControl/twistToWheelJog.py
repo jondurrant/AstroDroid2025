@@ -22,6 +22,7 @@ class ListenNode(Node):
             JointJog, 
             '/Astro/wheels_jog', 
             10)
+        self.radius = 0.108/2
         
         self.timerCounter = 0
         self.timer = self.create_timer(0.1, self.timerCB)
@@ -38,6 +39,7 @@ class ListenNode(Node):
         jog.joint_names= ["LEFT", "RIGHT"]
         (left, right) = self.calcDifferential(msg.linear.x, msg.angular.z)
         jog.velocities=[left, right]
+        print(jog)
         self.pubJog.publish(jog)
 
     def timerCB(self):
@@ -46,19 +48,23 @@ class ListenNode(Node):
             jog = JointJog()
             jog.joint_names= ["LEFT", "RIGHT"]
             jog.velocities=[0.0, 0.0]
-            print(jog)
+            #print(jog)
             self.pubJog.publish(jog)
             self.timerCounter = 0
 
     def calcDifferential(self, vx, theta):
         if (theta == 0.0):
-            return (vx, vx)
+            rps = vx / self.radius
+            return (rps, rps)
         L = 180 / 1000
         W = 340 / 1000
         Rb = L / math.tan(theta)
         vl = vx * ((Rb - W/2) / Rb)
         vr = vx * ((Rb + W/2) / Rb)
-        return (vl, vr)
+
+        lrps = vl / self.radius
+        rrps = vr / self.radius
+        return (lrps, rrps)
 
     
         
