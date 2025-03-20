@@ -20,6 +20,9 @@ add_executable(${NAME}
         NVSJson.cpp
         AstroEntities.cpp
         MotorsAgent.cpp
+        
+        HCSR04Agent.cpp
+        HCSR04Range.cpp
         )
 
 # Pull in our pico_stdlib which pulls in commonly used features

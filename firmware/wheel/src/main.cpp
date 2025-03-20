@@ -37,6 +37,8 @@ extern"C"{
 #include "NVSJson.h"
 #include "MotorsAgent.h"
 
+#include "HCSR04Agent.h"
+
 
 //Standard Task priority
 #define TASK_PRIORITY		( tskIDLE_PRIORITY + 1UL )
@@ -107,6 +109,27 @@ void mainTask(void *params){
 	AstroEntities entities;
 	entities.addEntity(&confEntities);
 	entities.addEntity(&motEntities);
+
+
+	//HCSR04
+	bool left;
+	nvs->get_bool(CONFIG_LEFT,  &left);
+	char side[6];
+	char sensorName[12];
+	if (left){
+		strcpy(side, "LEFT");
+	} else {
+		strcpy(side, "RIGHT");
+	}
+	HCSR04Agent hcsr04Sensors;
+	sprintf(sensorName,"%s-BACK", side);
+	hcsr04Sensors.addSensor(TRIGGER1, ECHO1,  sensorName);
+	sprintf(sensorName,"%s-45", side);
+	hcsr04Sensors.addSensor(TRIGGER2, ECHO2,  sensorName);
+	sprintf(sensorName,"%s-SIDE", side);
+	hcsr04Sensors.addSensor(TRIGGER3, ECHO3,  sensorName);
+	hcsr04Sensors.start("HCSR04s", TASK_PRIORITY);
+	entities.addEntity(&hcsr04Sensors);
 
 
 	//Start up a uROS Bridge
