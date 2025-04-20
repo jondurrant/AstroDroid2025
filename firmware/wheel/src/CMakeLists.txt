@@ -23,6 +23,8 @@ add_executable(${NAME}
         
         HCSR04Agent.cpp
         HCSR04Range.cpp
+        
+        LightsAgent.cpp
         )
 
 # Pull in our pico_stdlib which pulls in commonly used features

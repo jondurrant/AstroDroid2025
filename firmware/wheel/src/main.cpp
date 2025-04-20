@@ -38,6 +38,7 @@ extern"C"{
 #include "MotorsAgent.h"
 
 #include "HCSR04Agent.h"
+#include "LightsAgent.h"
 
 
 //Standard Task priority
@@ -130,6 +131,12 @@ void mainTask(void *params){
 	hcsr04Sensors.addSensor(TRIGGER3, ECHO3,  sensorName);
 	hcsr04Sensors.start("HCSR04s", TASK_PRIORITY);
 	entities.addEntity(&hcsr04Sensors);
+
+
+	//Lights
+	LightsAgent lights;
+	entities.addEntity(&lights);
+
 
 
 	//Start up a uROS Bridge
