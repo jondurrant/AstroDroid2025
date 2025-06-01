@@ -25,6 +25,9 @@ extern "C"{
 #define CONFIG_BUFFER_SIZE 1024
 #define CONFIG_MAX_KEYS 12
 
+#define DOME_MAX_STEPS "DOME_MAX_STEPS"
+
+
 
 
 class ConfigEntity : public  uRosEntities {

@@ -12,6 +12,8 @@
 
 #include "hardware/uart.h"
 
+#include "LX16A.h"
+
 
 //Breadboard
 //#define GP_TX 20
@@ -213,14 +215,46 @@ int main( void )
     sleep_ms(2000);
     printf("GO\n");
 
+
+
+    LX16A lx16a;
+    lx16a.config(GP_TX, GP_RX);
+
+    int mv, lmv, hmv;
+    lx16a.getVin(1, &mv);
+    lx16a.getVinLimit(1, &lmv, &hmv);
+    printf("Vix is %d (%d::%d)\n",mv, lmv, hmv);
+
+    float deg, rad;
+    for (;;){
+    	lx16a.moveServoDeg(1, 50, 500);
+    	sleep_ms(1000);
+    	if(lx16a.getPosDeg(1, &deg)){
+    		lx16a.getPosRad(1, &rad);
+    		printf("At %.2fdeg %.2frad\n", deg, rad);
+    	} else {
+    		printf("Get Pos failed\n");
+    	}
+    	sleep_ms(1000);
+    	lx16a.moveServoRad(1, 3.5, 500);
+    	sleep_ms(1000);
+    	if(lx16a.getPosDeg(1, &deg)){
+    		lx16a.getPosRad(1, &rad);
+    		printf("At %.2fdeg %.2frad\n", deg, rad);
+    	} else {
+    		printf("Get Pos failed\n");
+    	}
+    	sleep_ms(1000);
+    }
+
+
+    /*
+
     uart_init(uart1, 115200);
 	//uart_set_format( uart1,  8,  1, UART_PARITY_NONE);
 	//gpio_set_function(GP_TX, GPIO_FUNC_UART);
 	//gpio_set_function(GP_RX, GPIO_FUNC_UART);
 
-
-	int mv;
-	uint lmv, hmv;
 	for (;;){
 		moveServo(1, 50, 500);
 		moveServo(2, 200, 800);
@@ -242,6 +276,8 @@ int main( void )
 		sleep_ms(2000);
 
 	}
+
+	*/
 
     return 0;
 }

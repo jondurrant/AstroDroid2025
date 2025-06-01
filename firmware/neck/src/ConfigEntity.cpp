@@ -269,6 +269,10 @@ void ConfigEntity::setNeededDefaults(){
 		nvs->set_str(TOPIC_PREFIX,  prefix);
 	}
 
+	if (! nvs->contains(DOME_MAX_STEPS)){
+		uint u = 381904/32;
+		nvs->set_str(DOME_MAX_STEPS,  prefix);
+	}
 
 
 	nvs->commit();
