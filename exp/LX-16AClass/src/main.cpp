@@ -219,6 +219,7 @@ int main( void )
 
     LX16A lx16a;
     lx16a.config(GP_TX, GP_RX);
+    lx15a.setLimitRad(NECK_LX16A,  0.87,  2.10); //50deg to 120deg
 
     int mv, lmv, hmv;
     lx16a.getVin(1, &mv);

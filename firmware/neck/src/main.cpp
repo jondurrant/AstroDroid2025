@@ -37,6 +37,7 @@ extern"C"{
 
 #include "Stepper.h"
 #include "JointAgent.h"
+#include "LX16A.h"
 
 
 
@@ -86,9 +87,15 @@ void mainTask(void *params){
 		vTaskDelay(100);
 	}
 
+	//Servo
+	LX16A lx16a;
+	lx16a.config(GP_LX16A_TX, GP_LX16A_RX);
+	lx16a.setLimitRad(NECK_LX16A,  0.86,  2.10);
+
 	//Joint Agent
 	JointAgent joints;
 	joints.addStepper(&xStep);
+	joints.addLX16A(&lx16a);
 	entities.addEntity(&joints);
 
 	//Start up a uROS Bridge

@@ -12,6 +12,7 @@
 #include "Agent.h"
 #include "uRosEntities.h"
 #include "Stepper.h"
+#include "LX16A.h"
 
 extern"C"{
 #include <rcl/rcl.h>
@@ -34,6 +35,8 @@ extern"C"{
 #define JOINT_NAME_DOME "DomeZ"
 #define JOINT_NAME_BODY "BodyY"
 
+#define NECK_LX16A 1
+
 class JointAgent : public Agent, public uRosEntities {
 public:
 	JointAgent();
@@ -41,6 +44,8 @@ public:
 
 
 	void addStepper(Stepper *s);
+
+	void addLX16A(LX16A *s);
 
 	/***
 	 * Create the publishing entities
@@ -111,6 +116,7 @@ private:
 	control_msgs__msg__JointJog 	xJointJogMsg;
 
 	Stepper *pStepper = NULL;
+	LX16A *pLx16a = NULL;
 
 	rosidl_runtime_c__String xJointNameDome;
 	rosidl_runtime_c__String xJointNameBody;

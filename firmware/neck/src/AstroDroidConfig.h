@@ -26,6 +26,9 @@
 #define GP_M2							28
 #define GP_HALL						12
 
+#define GP_LX16A_TX 8
+#define GP_LX16A_RX 9
+
 
 #define ZERO_NEOPIXEL	16
 

@@ -38,7 +38,8 @@ public:
 
 	bool getPosDeg(uint8_t servo, float *deg);
 	bool getPosRad(uint8_t servo, float *rad);
-
+	void setLimitDeg(uint8_t servo, float minDeg, float maxDeg);
+	void setLimitRad(uint8_t servo, float minRad, float maxRad);
 protected:
 	virtual bool writeUart(uint8_t *buf, uint8_t len);
 	virtual bool readTimeout(uint8_t *buf, uint8_t len, uint ms);
@@ -49,6 +50,9 @@ private:
 	uint8_t xGpTx;
 	uint8_t xGpRx;
 	uart_inst_t *pUart;
+
+	float xMaxDeg = 240.0;
+	float xMinDeg = 24.0;
 
 };
 

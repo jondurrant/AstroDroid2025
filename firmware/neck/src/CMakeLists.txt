@@ -15,6 +15,7 @@ add_executable(${NAME}
         
         Stepper.cpp
         JointAgent.cpp
+        LX16A.cpp
         
         )
 

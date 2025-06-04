@@ -271,7 +271,7 @@ void ConfigEntity::setNeededDefaults(){
 
 	if (! nvs->contains(DOME_MAX_STEPS)){
 		uint u = 381904/32;
-		nvs->set_str(DOME_MAX_STEPS,  prefix);
+		//nvs->set_str(DOME_MAX_STEPS,  prefix);
 	}
 
 

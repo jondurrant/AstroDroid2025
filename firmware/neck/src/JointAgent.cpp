@@ -26,6 +26,10 @@ void JointAgent::addStepper(Stepper *s){
 	pStepper = s;
 }
 
+void JointAgent::addLX16A(LX16A *s){
+	pLx16a = s;
+}
+
 
 void JointAgent::createEntities(rcl_node_t *node, rclc_support_t *support){
 	rclc_publisher_init_default(
@@ -76,6 +80,8 @@ void JointAgent::handleSubscriptionMsg(const void* msg, uRosSubContext_t* contex
 	if (context == &xSubJointJogContext){
 			control_msgs__msg__JointJog * pJointJogMsg = (control_msgs__msg__JointJog *) msg;
 			for (int i=0; i < pJointJogMsg->joint_names.size; i++){
+
+				//Dome Rotate  Data
 				if (rosidl_runtime_c__String__are_equal(
 						&xJointNameDome,
 						&pJointJogMsg->joint_names.data[i])
@@ -96,7 +102,7 @@ void JointAgent::handleSubscriptionMsg(const void* msg, uRosSubContext_t* contex
 							bool cw = true;
 							uint ms = (uint) (pJointJogMsg->duration * 1000.0);
 							float dis = pJointJogMsg->displacements.data[i];
-							if (dis <= (M_PI * 2.0)){
+							if (( dis >= 0.0) && (dis <= (M_PI * 2.0))){
 								if (pStepper != NULL){
 									float c = pStepper->getPosRad();
 									if (dis > c){
@@ -115,10 +121,24 @@ void JointAgent::handleSubscriptionMsg(const void* msg, uRosSubContext_t* contex
 									pStepper->moveToRad( dis,  cw,  ms);
 								}
 							}
-
-
 						}
-				}
+
+						//Body rotate
+						} else if (rosidl_runtime_c__String__are_equal(
+								&xJointNameBody,
+								&pJointJogMsg->joint_names.data[i])
+								){
+							printf("Body disp\n");
+							 if (pJointJogMsg->displacements.size > i){
+									uint ms = (uint) (pJointJogMsg->duration * 1000.0);
+									float dis = pJointJogMsg->displacements.data[i];
+									if ((dis > 0.0) && (dis < M_PI * 2.0)){
+										if (pLx16a != NULL){
+											pLx16a->moveServoRad(NECK_LX16A, dis, ms);
+										}
+									}
+							 }
+						}//Body rotate
 
 			} // for joing names in msg
 		}// if Context
@@ -190,6 +210,14 @@ void JointAgent:: pubJointState(){
 				v = v * -1;
 			}
 			xJointStateMsg.velocity.data[0] = v;
+	}
+
+	//Servo
+	if (pLx16a != NULL){
+		float f;
+		if (pLx16a->getPosRad(NECK_LX16A, &f)){
+			xJointStateMsg.position.data[1] =f;
+		}
 	}
 
 
